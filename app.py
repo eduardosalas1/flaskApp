@@ -40,6 +40,50 @@ def add_product():
     conn.commit()
     return redirect(url_for('index'))
 
+@app.route('/edit/<codigo>')
+def edit_product(codigo):
+    conn =get_db_connection()
+    cur = conn.cursor()
+    cur.execute('select * from productos where codigo = %s',[codigo])
+    data = cur.fetchall()
+    print(data[0])
+    return render_template('edit.html',producto = data[0])
+
+@app.route('/delete/<string:codigo>')
+def delete_product(codigo):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('delete from productos where codigo = {0}'.format(codigo))
+    conn.commit()
+    flash('Producto Eliminado correctamente')
+    return redirect(url_for('index'))
+
+@app.route('/update/<codigo>', methods = ['POST'])
+def update_product(codigo):
+    if request.method == 'POST':
+        descripcion = request.form['descripcion']
+        precio = request.form['precio']
+        stock = request.form['stock']
+        categoria = request.form['categoria']
+        marca = request.form['marca']
+        modelo = request.form['modelo']
+        print('UPDATE', codigo, descripcion, precio, stock)
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            update productos
+            set descripcion = %s,
+                precio = %s,
+                stock = %s,
+                categoria = %s,
+                marca = %s,
+                modelo = %s
+            where codigo = %s
+        """,(descripcion,precio,stock,categoria,marca,modelo,codigo) )
+        conn.commit()
+        flash('Contacto actualizado correctamente')
+        return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run(port=3000, debug=True)
